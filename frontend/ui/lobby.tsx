@@ -11,6 +11,7 @@ export const Lobby = ({ defaultGameID }) => {
     'English (Original)',
   ]);
   const [customWordsText, setCustomWordsText] = React.useState('');
+  const [numberOfTeams, setNumberOfTeams] = React.useState(2);
   const [words, setWords] = React.useState({ ...OriginalWords, Custom: [] });
   const [warning, setWarning] = React.useState(null);
   const [timer, setTimer] = React.useState(null);
@@ -46,6 +47,7 @@ export const Lobby = ({ defaultGameID }) => {
         game_id: newGameName,
         word_set: combinedWordSet,
         create_new: false,
+        number_of_teams: numberOfTeams,
         timer_duration_ms:
           timer && timer.length ? timer[0] * 60 * 1000 + timer[1] * 1000 : 0,
         enforce_timer: timer && timer.length && enforceTimerEnabled,
@@ -98,8 +100,28 @@ export const Lobby = ({ defaultGameID }) => {
           {warning !== null ? (
             <div className="warning">{warning}</div>
           ) : (
-            <div></div>
-          )}
+              <div></div>
+            )}
+
+          <div>
+            <p>Please select the number of teams:</p>
+            <input type="radio" id="two_teams" name="numberOfTeams" value="2" onChange={(e) => {
+              console.log(e.target.value)
+              setNumberOfTeams(2)
+            }} />
+            <label for="two_teams">2 Teams</label><br />
+            <input type="radio" id="three_teams" name="numberOfTeams" value="3" onChange={(e) => {
+              console.log(e.target.value)
+              setNumberOfTeams(3)
+            }} />
+            <label for="three_teams">3 Teams</label><br />
+            <input type="radio" id="four_teams" name="numberOfTeams" value="4" onChange={(e) => {
+              console.log(e.target.value)
+              setNumberOfTeams(4)
+            }} />
+            <label for="four_teams">4 Teams</label>
+            <br />
+          </div>
 
           <TimerSettings
             {...{

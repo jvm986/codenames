@@ -191,10 +191,7 @@ export class Game extends React.Component {
   }
 
   public currentTeam() {
-    if (this.state.game.round % 2 == 0) {
-      return this.state.game.starting_team;
-    }
-    return this.state.game.starting_team == 'red' ? 'blue' : 'red';
+    return this.state.game.order[this.state.game.turn_index];
   }
 
   public remaining(color) {
@@ -236,6 +233,7 @@ export class Game extends React.Component {
         game_id: this.state.game.id,
         word_set: this.state.game.word_set,
         create_new: true,
+        number_of_teams: this.state.game.number_of_teams,
         timer_duration_ms: this.state.game.timer_duration_ms,
         enforce_timer: this.state.game.enforce_timer,
       })
@@ -351,16 +349,16 @@ export class Game extends React.Component {
             role="img"
             aria-label={this.getScoreAriaLabel(
               this.state.game.starting_team,
+              // TODO: Change to list of teams by order
               otherTeam
             )}
           >
-            <span className={this.state.game.starting_team + '-remaining'}>
-              {this.remaining(this.state.game.starting_team)}
-            </span>
-            &nbsp;&ndash;&nbsp;
-            <span className={otherTeam + '-remaining'}>
-              {this.remaining(otherTeam)}
-            </span>
+            {this.state.game.teams.map((team, idx) => (
+                <span
+                  key={idx}
+                  className={this.state.game.teams[idx] + "-remaining"}>{idx ? " - " : ""}{this.remaining(this.state.game.teams[idx])}
+                </span>
+            ))}
           </div>
           <div id="status" className="status-text">
             {status}
@@ -374,6 +372,8 @@ export class Game extends React.Component {
               className={
                 'cell ' +
                 this.state.game.layout[idx] +
+                ' ' +
+                ["two_players", "three_players", "four_players"][parseInt(this.state.game.number_of_teams) - 2] +
                 ' ' +
                 (this.state.codemaster && !this.state.settings.spymasterMayGuess
                   ? 'disabled '
