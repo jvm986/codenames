@@ -354,9 +354,11 @@ export class Game extends React.Component {
             )}
           >
             {this.state.game.teams.map((team, idx) => (
-                <span
-                  key={idx}
-                  className={this.state.game.teams[idx] + "-remaining"}>{idx ? " - " : ""}{this.remaining(this.state.game.teams[idx])}
+                <span>{idx ? " - " : ""}
+                  <span
+                    key={idx}
+                    className={this.state.game.teams[idx] + "-remaining"}>{this.remaining(this.state.game.teams[idx])}
+                  </span>
                 </span>
             ))}
           </div>

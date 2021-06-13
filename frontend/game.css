@@ -246,24 +246,48 @@
 
 .color-blind .blue-remaining,
 .color-blind #status-line.blue #status {
-  border: 4px solid #4183cc;
+  outline: 3px solid #4183cc;
+  border: 2px solid white;
 }
 
 .color-blind .red-remaining,
 .color-blind #status-line.red #status {
-  border: 4px dashed #d13030;
+  outline: 4px dashed #d13030;
+}
+
+.color-blind .yellow-remaining,
+.color-blind #status-line.yellow #status {
+  outline : 4px dotted #ccbe41;
+  border: 4px dotted white;
+}
+
+.color-blind .green-remaining,
+.color-blind #status-line.green #status {
+  outline: 8px dotted #5dcc41;
 }
 
 .color-blind.codemaster .red.hidden-word,
 .color-blind .red.revealed {
   outline: 4px dashed #d13030;
-  border: 1px solid white;
+  /* border: 1px solid white; */
 }
 
 .color-blind.codemaster .blue.hidden-word,
 .color-blind .blue.revealed {
-  outline: 4px solid #4183cc;
-  border: 1px solid white;
+  outline: 3px solid #4183cc;
+  border: 2px solid white;
+}
+
+.color-blind.codemaster .yellow.hidden-word,
+.color-blind .yellow.revealed {
+  outline : 4px dotted #ccbe41;
+  border: 4px dotted white;
+}
+
+.color-blind.codemaster .green.hidden-word,
+.color-blind .green.revealed{
+  outline: 8px dotted #5dcc41;
+  /* border: 1px solid white; */
 }
 
 .color-blind .revealed .word {
@@ -284,6 +308,12 @@
 }
 .dark-mode .codemaster .red {
   color: rgb(140, 15, 15);
+}
+.dark-mode .codemaster .yellow {
+  color: rgb(226, 226, 21);
+}
+.dark-mode .codemaster .green {
+  color: rgb(22, 204, 22);
 }
 .dark-mode .codemaster .blue.revealed,
 .dark-mode .codemaster .red.revealed {
