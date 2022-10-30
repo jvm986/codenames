@@ -212,7 +212,7 @@ func (g *Game) checkWinningCondition() {
 	g.Winners = newWinners
 }
 
-func nextTurn(g *Game) {
+func nextTurn(g *Game) error {
 	g.Round = g.Round + 1
 	if (g.TurnIndex < len(g.Order)) {
 		g.TurnIndex = (g.TurnIndex + 1) % len(g.Order)
@@ -221,6 +221,7 @@ func nextTurn(g *Game) {
 		g.TurnIndex = 0
 	}
 	g.RoundStartedAt = time.Now()
+	return nil
 }
 
 func (g *Game) Guess(idx int) error {
