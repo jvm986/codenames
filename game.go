@@ -2,7 +2,6 @@ package codenames
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -148,8 +147,7 @@ func (g *Game) StateID() string {
 }
 
 func (g *Game) checkWinningCondition() {
-	//if g.WinningTeam != nil {
-	if len(g.Order) < 2{
+	if len(g.Order) < 2 {
 		return
 	}
 	var redRemaining, blueRemaining, greenRemaining, yellowRemaining bool
@@ -167,14 +165,6 @@ func (g *Game) checkWinningCondition() {
 		case Yellow:
 			yellowRemaining = true
 		}
-	}
-	if !redRemaining {
-		winners := Red
-		g.WinningTeam = &winners
-	}
-	if !blueRemaining {
-		winners := Blue
-		g.WinningTeam = &winners
 	}
 
 	// Although the slices of Winners and Nonwinners are appended
@@ -222,20 +212,16 @@ func (g *Game) checkWinningCondition() {
 	g.Winners = newWinners
 }
 
-func (g *Game) NextTurn(currentTurn int) bool {
-	if g.WinningTeam != nil {
-		return false
+func nextTurn(g *Game) error {
+	g.Round = g.Round + 1
+	if (g.TurnIndex < len(g.Order)) {
+		g.TurnIndex = (g.TurnIndex + 1) % len(g.Order)
+	} else {
+		// Edge case g.TurnIndex == len(g.Order): Black was hit, turn index would be (3 + 1) % 4 = 1 instead of 0
+		g.TurnIndex = 0
 	}
-	// TODO: remove currentTurn != 0 once we can be sure all
-	// clients are running up-to-date versions of the frontend.
-	if g.Round != currentTurn && currentTurn != 0 {
-		return false
-	}
-	g.UpdatedAt = time.Now()
-	g.Round++
-	g.TurnIndex = (g.TurnIndex + 1) % len(g.Order)
 	g.RoundStartedAt = time.Now()
-	return true
+	return nil
 }
 
 func (g *Game) Guess(idx int) error {
@@ -243,27 +229,29 @@ func (g *Game) Guess(idx int) error {
 		return fmt.Errorf("index %d is invalid", idx)
 	}
 	if g.Revealed[idx] {
-		return errors.New("cell has already been revealed")
-	} 
+		// This causes errors on large fields
+		// return errors.New("cell has already been revealed")
+	}
+
+	oldOrderLength := len(g.Order)
 
 	g.UpdatedAt = time.Now()
 	g.Revealed[idx] = true
-	nextTurn := false
 
 	if g.Layout[idx] == Black {
-		nextTurn = true
 		loser := g.Order[g.TurnIndex]
 		g.Losers = append(g.Losers, loser)
-		newOrder := make([]Team, 0, g.NumberOfTeams)
+		newOrder := []Team{}
 
 		for _, stillInGame := range g.Order {
-			if stillInGame != loser{
-
-			newOrder = append(newOrder, stillInGame)
+			if stillInGame != loser {
+				newOrder = append(newOrder, stillInGame)
 			}
 		}
 
 		g.Order = newOrder
+		nextTurn(g)
+
 		//winners := g.currentTeam().Other()
 		//g.WinningTeam = &winners
 		return nil
@@ -271,14 +259,8 @@ func (g *Game) Guess(idx int) error {
 
 	g.checkWinningCondition()
 
-	if g.Layout[idx] != g.currentTeam() {
-		nextTurn = true
-	}
-
-	if nextTurn {
-		g.Round = g.Round + 1
-		g.TurnIndex = (g.TurnIndex + 1) % len(g.Order)
-		g.RoundStartedAt = time.Now()
+	if (g.Layout[idx] != g.currentTeam()) || (oldOrderLength != len(g.Order)) {
+		nextTurn(g)
 	}
 
 	return nil

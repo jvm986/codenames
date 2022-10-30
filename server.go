@@ -219,7 +219,7 @@ func (s *Server) handleEndTurn(rw http.ResponseWriter, req *http.Request) {
 	gh := s.getGame(request.GameID)
 
 	gh.update(func(g *Game) bool {
-		return g.NextTurn(request.CurrentRound)
+		return nextTurn(g) == nil
 	})
 	writeGame(rw, gh)
 }
