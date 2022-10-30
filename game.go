@@ -329,7 +329,7 @@ func newGame(id string, state GameState, opts GameOptions) *Game {
 		teamAssignments = append(teamAssignments, order[0].Repeat(9)...)
 		teamAssignments = append(teamAssignments, order[1].Repeat(8)...)
 		teamAssignments = append(teamAssignments, order[2].Repeat(7)...)
-		teamAssignments = append(teamAssignments, Neutral.Repeat(9)...)
+		teamAssignments = append(teamAssignments, Neutral.Repeat(11)...)
 		teamAssignments = append(teamAssignments, Black)
 		break
 	case 4:
@@ -339,7 +339,7 @@ func newGame(id string, state GameState, opts GameOptions) *Game {
 		teamAssignments = append(teamAssignments, order[1].Repeat(9)...)
 		teamAssignments = append(teamAssignments, order[2].Repeat(8)...)
 		teamAssignments = append(teamAssignments, order[3].Repeat(7)...)
-		teamAssignments = append(teamAssignments, Neutral.Repeat(13)...)
+		teamAssignments = append(teamAssignments, Neutral.Repeat(14)...)
 		teamAssignments = append(teamAssignments, Black)
 		break
 	default:
