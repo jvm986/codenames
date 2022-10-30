@@ -73,6 +73,19 @@
   color: #dbcd00;
 }
 
+#remaining .loser {
+  text-decoration: line-through;
+  color:  gray;
+}
+
+.active {
+  text-decoration: underline;
+}
+
+.winner {
+  font-style: italic;
+}
+
 #end-turn-cont {
   width: 10em;
   text-align: right;
