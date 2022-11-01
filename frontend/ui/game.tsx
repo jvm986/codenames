@@ -40,12 +40,12 @@ export class Game extends React.Component {
   }
 
   // Judge if the game is finished, by counting number of teams still in the game
-  public gameIsFinished(){
+  public gameIsFinished() {
     return !(this.state.game.order.length > 1);
   }
 
   // After a game has finished, count the scores of each team.
-  public getFinalTeamScores(){
+  public getFinalTeamScores() {
     this.state.game.teams.forEach(team => {
       // add one point if there are losers, 0 points if not
       let score = this.state.game.losers.length ? 1 : 0;
@@ -113,11 +113,11 @@ export class Game extends React.Component {
           .getElementById('favicon')
           .setAttribute(
             'href',
-            this.currentTeam() === 'blue' ? blueTurnFavicon : 
-            this.currentTeam() === 'green' ? greenTurnFavicon : 
-            this.currentTeam() === 'yellow' ? yellowTurnFavicon : 
-            this.currentTeam() === 'red' ? redTurnFavicon :
-            defaultFavicon
+            this.currentTeam() === 'blue' ? blueTurnFavicon :
+              this.currentTeam() === 'green' ? greenTurnFavicon :
+                this.currentTeam() === 'yellow' ? yellowTurnFavicon :
+                  this.currentTeam() === 'red' ? redTurnFavicon :
+                    defaultFavicon
           );
       }
     }
@@ -129,13 +129,13 @@ export class Game extends React.Component {
     let res = 'Scores: ';
     let scores = [];
     this.state.game.order.forEach(team => {
-        scores.push(this.remaining(team).toString() + ' ' + team + ' words remaining');
+      scores.push(this.remaining(team).toString() + ' ' + team + ' words remaining');
     });
     res += scores.join(', ');
-    if (this.state.game.losers.length !== 0){
+    if (this.state.game.losers.length !== 0) {
       res += '. Losers: ' + this.state.game.losers.join(', ');
     }
-    if (this.state.game.winners.length !== 0){
+    if (this.state.game.winners.length !== 0) {
       res += '. Winners: ' + this.state.game.winners.join(', ');
     }
     res += '. ';
@@ -321,10 +321,8 @@ export class Game extends React.Component {
 
     let status, statusClass;
     if (this.gameIsFinished()) {
-      statusClass = this.state.game.winners[0] + ' on first place!';
-      status = this.state.game.winners[0] + ' on first place!';
-      // old: statusClass = this.state.game.winning_team + ' win';
-      // old: status = this.state.game.winning_team + ' wins!';
+      statusClass = "finished"
+      status = <span> Winners: {this.state.game.winners.join(", ")}. {this.state.game.losers.length !== 0 ? <div>Loser by Strike: {this.state.game.losers[0]}</div> : ""} </span>
     } else {
       statusClass = this.currentTeam() + '-turn';
       status = this.currentTeam() + "'s turn";
@@ -394,18 +392,18 @@ export class Game extends React.Component {
             aria-label={this.getScoreAriaLabel()}
           >
             {this.state.game.teams.map((team, idx) => (
-                <span>{idx ? " - " : ""}
-                  <span
-                    key={idx}
-                    className={
-                      team + "-remaining" + 
-                      (this.state.game.losers.includes(team) ? " loser" : "") + 
-                      (this.currentTeam() === team ? " active" : "") +
-                      (this.state.game.winners.includes(team) ? " winner" : "")
-                    }
-                  >{this.remaining(team)}
-                  </span>
+              <span>{idx ? " - " : ""}
+                <span
+                  key={idx}
+                  className={
+                    team + "-remaining" +
+                    (this.state.game.losers.includes(team) ? " loser" : "") +
+                    (this.currentTeam() === team ? " active" : "") +
+                    (this.state.game.winners.includes(team) ? " winner" : "")
+                  }
+                >{this.remaining(team)}
                 </span>
+              </span>
             ))}
           </div>
           <div id="status" className="status-text">

@@ -2,6 +2,7 @@ package codenames
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -13,7 +14,7 @@ const (
 	Neutral Team = iota
 	Red
 	Blue
-	Green 
+	Green
 	Yellow
 	Black
 )
@@ -75,12 +76,12 @@ func (t Team) Repeat(n int) []Team {
 // a Game's state. It's used to recreate games after
 // a process restart.
 type GameState struct {
-	Seed      int64    `json:"seed"`
-	PermIndex int      `json:"perm_index"`
+	Seed         int64    `json:"seed"`
+	PermIndex    int      `json:"perm_index"`
 	Round        int      `json:"round"`      // the round
 	TurnIndex    int      `json:"turn_index"` // the index of the turn: can be used to determine which team's turn is next
-	Revealed  []bool   `json:"revealed"`
-	WordSet   []string `json:"word_set"`
+	Revealed     []bool   `json:"revealed"`
+	WordSet      []string `json:"word_set"`
 	WordsPerGame int      `json:"words_per_game"`
 }
 
@@ -94,12 +95,12 @@ func (gs GameState) anyRevealed() bool {
 
 func randomState(words []string, wordsPerGame int) GameState {
 	return GameState{
-		Seed:      rand.Int63(),
-		PermIndex: 0,
-		Round:     0,
+		Seed:         rand.Int63(),
+		PermIndex:    0,
+		Round:        0,
 		TurnIndex:    0,
-		Revealed:  make([]bool, wordsPerGame),
-		WordSet:   words,
+		Revealed:     make([]bool, wordsPerGame),
+		WordSet:      words,
 		WordsPerGame: wordsPerGame,
 	}
 }
@@ -119,20 +120,20 @@ func nextGameState(state GameState) GameState {
 
 type Game struct {
 	GameState
-	ID             string    `json:"id"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 	//
-	StartingTeam   Team      `json:"starting_team"`
+	StartingTeam Team `json:"starting_team"`
 	//
 	WinningTeam    *Team     `json:"winning_team,omitempty"`
 	Words          []string  `json:"words"`
 	Layout         []Team    `json:"layout"`
 	RoundStartedAt time.Time `json:"round_started_at,omitempty"`
-	Teams 		   []Team	 `json:"teams"`
-	Order          []Team    `json:"order"`    // the order of teams currently still in the game
-	Winners        []Team    `json:"winners"` 		// the list of winning teams, in order
-	Losers         []Team    `json:"losers"`        // list of teams, that haven't won, but are out, e.g. by hitting the black field
+	Teams          []Team    `json:"teams"`   // Initial list of teams
+	Order          []Team    `json:"order"`   // the order of teams currently still in the game
+	Winners        []Team    `json:"winners"` // the list of winning teams, in order
+	Losers         []Team    `json:"losers"`  // list of teams, that haven't won, but are out, e.g. by hitting the black field
 	GameOptions
 }
 
@@ -214,12 +215,7 @@ func (g *Game) checkWinningCondition() {
 
 func nextTurn(g *Game) error {
 	g.Round = g.Round + 1
-	if (g.TurnIndex < len(g.Order)) {
-		g.TurnIndex = (g.TurnIndex + 1) % len(g.Order)
-	} else {
-		// Edge case g.TurnIndex == len(g.Order): Black was hit, turn index would be (3 + 1) % 4 = 1 instead of 0
-		g.TurnIndex = 0
-	}
+	g.TurnIndex = (g.TurnIndex + 1) % len(g.Order)
 	g.RoundStartedAt = time.Now()
 	return nil
 }
@@ -229,11 +225,10 @@ func (g *Game) Guess(idx int) error {
 		return fmt.Errorf("index %d is invalid", idx)
 	}
 	if g.Revealed[idx] {
-		// This causes errors on large fields
-		// return errors.New("cell has already been revealed")
+		return errors.New("cell has already been revealed")
 	}
 
-	oldOrderLength := len(g.Order)
+	oldOrder := g.Order
 
 	g.UpdatedAt = time.Now()
 	g.Revealed[idx] = true
@@ -250,7 +245,10 @@ func (g *Game) Guess(idx int) error {
 		}
 
 		g.Order = newOrder
-		nextTurn(g)
+		if g.TurnIndex == len(g.Order) {
+			g.TurnIndex = 0
+		}
+		g.RoundStartedAt = time.Now()
 
 		//winners := g.currentTeam().Other()
 		//g.WinningTeam = &winners
@@ -259,7 +257,17 @@ func (g *Game) Guess(idx int) error {
 
 	g.checkWinningCondition()
 
-	if (g.Layout[idx] != g.currentTeam()) || (oldOrderLength != len(g.Order)) {
+	// If there was a winner after this turn, the length of g.Order must have changed
+	// in this case, nextTurn would yield the wrong result
+	if len(oldOrder) != len(g.Order) {
+		if g.Layout[idx] != oldOrder[g.TurnIndex] {
+			g.TurnIndex = (g.TurnIndex + 1) % len(oldOrder)
+		}
+		if g.TurnIndex == len(g.Order) {
+			g.TurnIndex = 0
+		}
+		g.RoundStartedAt = time.Now()
+	} else if g.Layout[idx] != g.currentTeam() {
 		nextTurn(g)
 	}
 
@@ -281,30 +289,30 @@ func newGame(id string, state GameState, opts GameOptions) *Game {
 	// basic order of teams, depending on number of teams
 	order := make([]Team, 0, opts.NumberOfTeams)
 	teams := make([]Team, 0, opts.NumberOfTeams)
-	for i:=0; i<int(opts.NumberOfTeams); i++ {
+	for i := 0; i < int(opts.NumberOfTeams); i++ {
 		order = append(order, []Team{Red, Blue, Green, Yellow}[i])
 	}
 
 	// shuffle the order if teams
-	for i:=0; i<5; i++ {
+	for i := 0; i < 5; i++ {
 		a := randRnd.Intn(5) % int(opts.NumberOfTeams)
 		b := randRnd.Intn(5) % int(opts.NumberOfTeams)
 		order[a], order[b] = order[b], order[a]
 	}
 
-	for i:=0; i<int(opts.NumberOfTeams); i++ {
+	for i := 0; i < int(opts.NumberOfTeams); i++ {
 		teams = append(teams, order[i])
 	}
 
 	game := &Game{
-		ID:             id,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		ID:        id,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 		//StartingTeam:   Team(randRnd.Intn(2)) + Red,
-		Teams:			teams, 
-		Order:			order,
-		Winners: 		make([]Team, 0, opts.NumberOfTeams - 1),
-		Losers: 		make([]Team, 0, 1), // Currently only one team can hit the black field
+		Teams:          teams,
+		Order:          order,
+		Winners:        make([]Team, 0, opts.NumberOfTeams-1),
+		Losers:         make([]Team, 0, 1), // Currently only one team can hit the black field
 		Words:          make([]string, 0, state.WordsPerGame),
 		Layout:         make([]Team, 0, state.WordsPerGame),
 		GameState:      state,
