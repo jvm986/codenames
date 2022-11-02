@@ -231,8 +231,6 @@ export class Game extends React.Component {
   }
 
   public currentTeam() {
-    console.log(this.state.game.turn_index);
-    console.log(this.state.game.order);
     return this.state.game.order[this.state.game.turn_index];
   }
 

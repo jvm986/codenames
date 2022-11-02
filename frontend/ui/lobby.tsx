@@ -105,18 +105,15 @@ export const Lobby = ({ defaultGameID }) => {
 
           <div>
             <p>Please select the number of teams:</p>
-            <input type="radio" id="two_teams" name="numberOfTeams" value="2" onChange={(e) => {
-              console.log(e.target.value)
+            <input type="radio" id="two_teams" name="numberOfTeams" value="2" checked="checked" onChange={(e) => {
               setNumberOfTeams(2)
             }} />
             <label for="two_teams">2 Teams</label><br />
             <input type="radio" id="three_teams" name="numberOfTeams" value="3" onChange={(e) => {
-              console.log(e.target.value)
               setNumberOfTeams(3)
             }} />
             <label for="three_teams">3 Teams</label><br />
             <input type="radio" id="four_teams" name="numberOfTeams" value="4" onChange={(e) => {
-              console.log(e.target.value)
               setNumberOfTeams(4)
             }} />
             <label for="four_teams">4 Teams</label>
