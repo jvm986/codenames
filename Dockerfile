@@ -9,9 +9,9 @@ RUN apk add gcc musl-dev \
 FROM node:12-alpine as frontend
 COPY . /app
 WORKDIR /app/frontend
-RUN npm install -g parcel-bundler \
+RUN apk add --no-cache python3 make g++ \
     && npm install \
-    && sh build.sh
+    && npm run build
 
 # Copy build artifacts from previous build stages (to remove files not necessary for
 # deployment).

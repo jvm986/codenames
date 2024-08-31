@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "parcel watch app.tsx game.css lobby.css",
-    "build": "./build.sh"
+    "build": "parcel build app.tsx game.css lobby.css"
   },
   "husky": {
     "hooks": {
