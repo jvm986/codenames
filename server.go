@@ -130,7 +130,19 @@ func (s *Server) getGame(gameID string) *GameHandle {
 	if ok {
 		return gh
 	}
-	gh = newHandle(newGame(gameID, randomState(s.defaultWords), GameOptions{}), s.Store)
+
+	opts := GameOptions{}
+
+	// set number of teams to a gefault of 2
+	opts.NumberOfTeams = 2
+
+	gh = newHandle(newGame(gameID, randomState(s.defaultWords, []int{25, 36, 49}[opts.NumberOfTeams-2]), opts), s.Store)
+	
+
+
+
+
+	//gh = newHandle(newGame(gameID, randomState(s.defaultWords), GameOptions{}), s.Store)
 	s.games[gameID] = gh
 	return gh
 }
@@ -207,7 +219,7 @@ func (s *Server) handleEndTurn(rw http.ResponseWriter, req *http.Request) {
 	gh := s.getGame(request.GameID)
 
 	gh.update(func(g *Game) bool {
-		return g.NextTurn(request.CurrentRound)
+		return nextTurn(g) == nil
 	})
 	writeGame(rw, gh)
 }
@@ -219,6 +231,7 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 		CreateNew       bool     `json:"create_new"`
 		TimerDurationMS int64    `json:"timer_duration_ms"`
 		EnforceTimer    bool     `json:"enforce_timer"`
+		NumberOfTeams   int64    `json:"number_of_teams"`
 	}
 
 	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
@@ -255,13 +268,14 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 		opts := GameOptions{
 			TimerDurationMS: request.TimerDurationMS,
 			EnforceTimer:    request.EnforceTimer,
+			NumberOfTeams:   request.NumberOfTeams,
 		}
 
 		var ok bool
 		gh, ok = s.games[request.GameID]
 		if !ok {
 			// no game exists, create for the first time
-			gh = newHandle(newGame(request.GameID, randomState(words), opts), s.Store)
+			gh = newHandle(newGame(request.GameID, randomState(words, []int{25, 36, 49}[opts.NumberOfTeams-2]), opts), s.Store)
 			s.games[request.GameID] = gh
 		} else if request.CreateNew {
 			replacedCh := gh.replaced
@@ -305,7 +319,10 @@ func (s *Server) handleStats(rw http.ResponseWriter, req *http.Request) {
 	var inProgress, createdWithinAnHour int
 	for _, gh := range s.games {
 		gh.mu.Lock()
-		if gh.g.WinningTeam == nil && gh.g.anyRevealed() {
+		//if gh.g.WinningTeam == nil && gh.g.anyRevealed() {
+		//	inProgress++
+		//}
+		if len(gh.g.Winners)  == 0 && gh.g.anyRevealed() {
 			inProgress++
 		}
 		if hourAgo.Before(gh.g.CreatedAt) {
@@ -333,8 +350,9 @@ func (s *Server) cleanupOldGames() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for id, gh := range s.games {
-		gh.mu.Lock()
-		if gh.g.WinningTeam != nil && gh.g.CreatedAt.Add(3*time.Hour).Before(time.Now()) {
+		gh.mu.Lock()	
+		if len(gh.g.Order) == 0 && gh.g.CreatedAt.Add(3*time.Hour).Before(time.Now()) {
+		//if gh.g.WinningTeam != nil && gh.g.CreatedAt.Add(3*time.Hour).Before(time.Now()) {
 			delete(s.games, id)
 			log.Printf("Removed completed game %s\n", id)
 		} else if gh.g.CreatedAt.Add(72 * time.Hour).Before(time.Now()) {
