@@ -4,7 +4,6 @@ go 1.22
 
 require (
 	github.com/cockroachdb/pebble v0.0.0-20221028164002-fd4988b3fe89
-	github.com/jbowens/codenames v0.0.0-20230106020521-9182b62d50a2
 	github.com/jbowens/dictionary v0.0.0-20160629041621-229cf68df1a6
 	github.com/kr/pretty v0.2.1
 	github.com/pkg/errors v0.9.1
