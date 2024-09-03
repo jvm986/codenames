@@ -1,0 +1,40 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+      - name: Run tests
+        run: go test ./...
+
+  publish:
+    uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
+    if: ${{ github.ref_name == 'main' || github.ref_name == 'develop'}}
+    needs: test
+    with:
+      app_name: "codenames"
+      docker_hub_user: ${{ vars.DOCKER_HUB_USER }}
+    secrets:
+      docker_hub_password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+  deploy:
+    if: ${{ github.ref_name == 'main' }}
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        uses: gh-actions-workflows/deploy-docker-render@v1.1
+        with:
+          deploy-hook: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          image-url: ${{ needs.publish.outputs.image_name }}
+          render-api-key: ${{ secrets.RENDER_API_KEY }}
+          wait-for-deployment: true
