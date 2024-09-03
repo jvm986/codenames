@@ -18,7 +18,7 @@ jobs:
 
   publish:
     uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
-    if: ${{ github.ref_name == 'main' || github.ref_name == 'develop'}}
+    if: ${{ github.ref_name == 'main'}}
     needs: test
     with:
       app_name: "codenames"
