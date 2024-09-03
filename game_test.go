@@ -41,12 +41,12 @@ func BenchmarkGameMarshal(b *testing.B) {
 func TestGameShuffle(t *testing.T) {
 	gamesWithoutRepeats := len(testWords)/25 - 1
 
-	initialState := randomState(testWords)
+	initialState := randomState(testWords, 25)
 	currState := initialState
 
 	m := map[string]int{}
 	for i := 0; i < gamesWithoutRepeats; i++ {
-		g := newGame("foo", currState, GameOptions{})
+		g := newGame("foo", currState, GameOptions{NumberOfTeams: 2})
 		for _, w := range g.Words {
 			if prevI, ok := m[w]; ok {
 				t.Errorf("Word %q appeared twice, once in game %d and once in game %d.", w, prevI, i)
